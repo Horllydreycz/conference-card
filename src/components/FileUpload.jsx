@@ -1,8 +1,26 @@
 import { useState } from "react";
 
-function FileUpload() {
+function FileUpload({ onFileAccept }) {
   const [isDragActive, setIsDragActive] = useState(false);
   const [file, setFile] = useState(null);
+  const [error, setError] = useState(null);
+  const MAX_FILE_SIZE = 500 * 1024; // 500KB
+
+  const validateFile = (uploadedFile) => {
+    if (uploadedFile.size > MAX_FILE_SIZE) {
+      setError(
+        `File size exceeds 500KB. Your file is ${(uploadedFile.size / 1024).toFixed(2)}KB`,
+      );
+      setFile(null);
+      return false;
+    }
+    setError(null);
+    setFile(uploadedFile);
+    if (onFileAccept) {
+      onFileAccept(uploadedFile);
+    }
+    return true;
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -20,13 +38,13 @@ function FileUpload() {
     setIsDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
+      validateFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      validateFile(e.target.files[0]);
     }
   };
 
@@ -62,6 +80,11 @@ function FileUpload() {
           {file && (
             <p className="text-green-500 mt-2 font-inconsolata text-sm">
               {file.name}
+            </p>
+          )}
+          {error && (
+            <p className="text-red-500 mt-2 font-inconsolata text-sm">
+              {error}
             </p>
           )}
         </label>
